@@ -18,8 +18,6 @@ aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     * Update `aws_key_name` and `aws_private_key`, to match the chosen region.
 
-    * Make sure the number of partitions for Kafka is greater than the total number of Minions you're expecting to have.
-
 * Execute the following commands from the repository's root directory (at the same level as the .tf files):
 
 ```SHELL
