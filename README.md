@@ -22,3 +22,5 @@ You can change the environment variables to set the external IP for the advertis
 The `gominion` won't start Sink listeners, only the Heartbeat for testing purposes. Note that the JMX collector is not implemented, so it is expected to find `dataCollectionFailed` alarms for the `JMX-Minion` service. However, Pollerd would be able to verify `Minion-Heartbeat`, and `Minion-RPC`, and you could even use the Minions for collecting SNMP statistics if you want.
 
 There is going to be one Minion per Location. The locations and the minion names will contain the index of the instance.
+
+**WARNING: Be careful with [NMS-13232](https://issues.opennms.org/browse/NMS-13232). I found issues on the Minions requisition when starting lots of instances simultaneously.**
