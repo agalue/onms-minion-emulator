@@ -100,6 +100,14 @@ resource "aws_security_group" "kafka" {
   description = "Allow Kafka connections."
 
   ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    description = "Admin"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 9092
     to_port     = 9092
     protocol    = "tcp"

@@ -74,7 +74,7 @@ variable "settings" {
 
   default = {
     kafka_disk_space          = 100 # In GB
-    kafka_num_partitions      = 48
+    kafka_num_partitions      = 3 # Careful, Kafka could die when having 1500+ Minions
     kafka_replication_factor  = 2
     kafka_min_insync_replicas = 1
     onms_rpc_ttl              = 60000 # In milliseconds
