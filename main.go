@@ -33,7 +33,7 @@ func main() {
 	flag.StringVar(&brokerType, "t", "kafka", "broker type: kafka, grpc")
 	flag.StringVar(&logLevel, "l", "info", "Logging level: debug, info, warn, error")
 	flag.Parse()
-	log.InitLogger(logLevel)
+	log.InitProdLogger(logLevel)
 
 	go func() {
 		log.Warnf("Starting Prometheus Metrics server on port %d", metricsPort)
