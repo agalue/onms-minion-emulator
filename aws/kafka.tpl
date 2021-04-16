@@ -109,6 +109,7 @@ echo $node_id > $zoo_data/myid
 
 zoo_cfg=/opt/kafka/config/zookeeper.properties
 
+sed -i -r "/^admin.enableServer/s/false/true/" $zoo_cfg
 sed -i -r "s|dataDir=.*|dataDir=$zoo_data|" $zoo_cfg
 
 cat <<EOF >> $zoo_cfg
