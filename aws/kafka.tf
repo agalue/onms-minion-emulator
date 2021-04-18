@@ -10,7 +10,10 @@ data "template_file" "kafka" {
     num_partitions      = var.settings.kafka_num_partitions
     replication_factor  = var.settings.kafka_replication_factor
     min_insync_replicas = var.settings.kafka_min_insync_replicas
+    fd_limit_kafka      = var.settings.fd_limit_kafka
+    fd_limit_zookeeper  = var.settings.fd_limit_zookeeper
     ip_addresses        = join(",", var.kafka_ip_addresses)
+    disk_device_name    = var.settings.kafka_disk_device_name
   }
 }
 
@@ -32,16 +35,34 @@ resource "aws_instance" "kafka" {
     aws_security_group.kafka.id,
   ]
 
-  root_block_device {
-    volume_type = "gp2"
-    volume_size = var.settings.kafka_disk_space
-  }
-
   tags = {
     Name        = "Terraform Kafka Server ${count.index + 1}"
     Environment = "Test"
     Department  = "Support"
   }
+}
+
+resource "aws_ebs_volume" "kafka" {
+  count = length(var.kafka_ip_addresses)
+
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = var.settings.kafka_disk_space_in_gb
+  type              = "gp2"
+
+  tags = {
+    Name        = "Terraform Kafka Volume ${count.index + 1}"
+    Environment = "Test"
+    Department  = "Support"
+  }
+}
+
+resource "aws_volume_attachment" "kafka" {
+  count = length(var.kafka_ip_addresses)
+
+  device_name  = var.settings.kafka_disk_device_name
+  volume_id    = aws_ebs_volume.kafka[count.index].id
+  instance_id  = aws_instance.kafka[count.index].id
+  force_detach = true
 }
 
 output "kafka" {

@@ -7,7 +7,10 @@ node_id="${node_id}"
 num_partitions="${num_partitions}"
 replication_factor="${replication_factor}"
 min_insync_replicas="${min_insync_replicas}"
+fd_limit_kafka="${fd_limit_kafka}"
+fd_limit_zookeeper="${fd_limit_zookeeper}"
 ip_addresses="${ip_addresses}"
+disk_device_name="${disk_device_name}"
 
 # AWS Template Variables - End
 
@@ -17,7 +20,69 @@ hostname="kafka$node_id"
 ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 timedatectl set-timezone "America/New_York"
-echo "* - nofile 200000" > /etc/security/limits.d/application.conf
+
+echo "### Kernel Tuning..."
+
+cat <<EOF > /etc/sysctl.d/application.conf
+# Disable TCP timestamps to improve CPU utilization (optional):
+net.ipv4.tcp_timestamps=0
+
+# Enable TCP sacks to improve throughput:
+net.ipv4.tcp_sack=1
+
+# Increase the maximum length of processor input queues:
+net.core.netdev_max_backlog=250000
+
+# Increase the TCP max and default buffer sizes using setsockopt():
+net.core.rmem_max=4194304
+net.core.wmem_max=4194304
+net.core.rmem_default=4194304
+net.core_wmem_default=4194304
+net.core.optmem_max=4194304
+
+# Increase memory thresholds to prevent packet dropping:
+net.ipv4.tcp_rmem="4096 87380 4194304"
+net.ipv4.tcp_wmem="4096 65536 4194304"
+
+# Enable low latency mode for TCP:
+net.ipv4.tcp_low_latency=1
+
+# Set the socket buffer to be divided evenly between TCP window size and application buffer:
+net.ipv4.tcp_adv_win_scale=1
+
+# Disable Swap
+vm.swappiness=1
+vm.zone_reclaim_mode=0
+vm.max_map_count=1048575
+EOF
+sysctl -p /etc/sysctl.d/application.conf
+
+echo "### Waiting on device $disk_device_name..."
+
+while [ ! -e $disk_device_name ]; do
+  printf '.'
+  sleep 10
+done
+
+echo "### Creating partition on $disk_device_name..."
+
+(
+echo o
+echo n
+echo p
+echo 1
+echo
+echo
+echo w
+) | fdisk $disk_device_name
+mkfs.xfs -f $disk_device_name
+
+echo "### Mounting partition..."
+
+mount_point=/data
+mkdir -p $mount_point
+mount -t xfs $disk_device_name $mount_point
+echo "$disk_device_name $mount_point xfs defaults,noatime 0 0" >> /etc/fstab
 
 echo "### Installing common packages..."
 
@@ -34,6 +99,7 @@ rocommunity public default
 syslocation AWS
 syscontact Account Manager
 dontLogTCPWrappersConnects yes
+disk $mount_point
 disk /
 EOF
 chmod 600 $snmp_cfg
@@ -74,6 +140,7 @@ After=network-online.target
 Type=simple
 User=root
 Group=root
+LimitNOFILE=$fd_limit_kafka
 Environment="KAFKA_HEAP_OPTS=-Xmx$${kafka_mem}m -Xms$${kafka_mem}m"
 Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
 Environment="JMX_PORT=9999"
@@ -95,6 +162,7 @@ After=network-online.target
 Type=simple
 User=root
 Group=root
+LimitNOFILE=$fd_limit_zookeeper
 Environment="KAFKA_HEAP_OPTS=-Xmx$${zk_mem}m -Xms$${zk_mem}m"
 Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9997 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
 Environment="JMX_PORT=9997"
@@ -109,7 +177,7 @@ systemctl daemon-reload
 
 echo "### Configuring Zookeeper..."
 
-zoo_data=/data/zookeeper
+zoo_data=$mount_point/zookeeper
 mkdir -p $zoo_data
 echo $node_id > $zoo_data/myid
 
@@ -143,7 +211,7 @@ chmod 400 $password_file
 echo "### Configuring Kafka..."
 
 kafka_cfg=/opt/kafka/config/server.properties
-kafka_data=/data/kafka
+kafka_data=$mount_point/kafka
 mkdir -p $kafka_data
 
 connect=$(echo $ip_addresses | sed 's/,/:2181,/g'):2181
@@ -159,7 +227,7 @@ default.replication.factor=$replication_factor
 min.insync.replicas=$min_insync_replicas
 controlled.shutdown.enable=true
 auto.create.topics.enable=true
-delete.topic.enable=false
+delete.topic.enable=true
 zookeeper.session.timeout.ms=30000
 EOF
 
