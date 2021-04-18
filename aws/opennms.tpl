@@ -3,6 +3,7 @@
 
 # AWS Template Variables - Start
 
+zk_servers="${zk_servers}"
 kafka_servers="${kafka_servers}"
 rpc_ttl="${rpc_ttl}"
 
@@ -127,3 +128,14 @@ $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 $opennms_home/bin/install -dis
 
 systemctl --now enable opennms
+
+echo "### Installing and Running CMAK via Docker..."
+
+amazon-linux-extras install docker -y
+systemctl --now enable docker
+sleep 5
+docker run --name cmak --hostname cmak --detach \
+  --expose 9000 \
+  --restart always \
+  --env ZK_HOSTS=$zk_servers \
+  hlebalbau/kafka-manager:stable

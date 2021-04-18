@@ -141,7 +141,7 @@ resource "aws_security_group" "kafka" {
 
 resource "aws_security_group" "opennms" {
   name        = "terraform-opennms-sg"
-  description = "Allow OpenNMS Core connections."
+  description = "Allow OpenNMS connections."
 
   ingress {
     from_port   = 8980
@@ -152,19 +152,11 @@ resource "aws_security_group" "opennms" {
   }
 
   ingress {
-    from_port   = 18980
-    to_port     = 18980
+    from_port   = 9000
+    to_port     = 9000
     protocol    = "tcp"
-    description = "JMX"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  ingress {
-    from_port   = 61616
-    to_port     = 61616
-    protocol    = "tcp"
-    description = "AMQ"
-    cidr_blocks = [var.vpc_cidr]
+    description = "CMAK"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {

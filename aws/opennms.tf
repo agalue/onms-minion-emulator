@@ -4,6 +4,7 @@ data "template_file" "opennms" {
   template = file("opennms.tpl")
 
   vars = {
+    zk_servers    = "${aws_instance.kafka[0].private_ip}:2181"
     kafka_servers = "${aws_instance.kafka[0].private_ip}:9092"
     rpc_ttl       = var.settings.onms_rpc_ttl
   }
