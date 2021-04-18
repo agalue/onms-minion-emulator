@@ -121,17 +121,6 @@ org.opennms.security.disableLoginSuccessEvent=true
 org.opennms.web.defaultGraphPeriod=last_2_hour
 EOF
 
-cat <<EOF > $opennms_etc/default-foreign-source.xml
-<foreign-source xmlns="http://xmlns.opennms.org/xsd/config/foreign-source" name="default" date-stamp="2021-04-01T00:00:00.000-05:00">
-   <scan-interval>1d</scan-interval>
-   <detectors>
-      <detector name="ICMP" class="org.opennms.netmgt.provision.detector.icmp.IcmpDetector"/>
-      <detector name="SNMP" class="org.opennms.netmgt.provision.detector.snmp.SnmpDetector"/>
-   </detectors>
-   <policies/>
-</foreign-source>
-EOF
-
 echo "### Start OpenNMS..."
 
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java

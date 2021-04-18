@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 volumes:
 
@@ -141,7 +141,9 @@ services:
     - -u
     - 'kafka:9092'
     - -n
-    - '${INSTANCES:-200}'
+    - '${LOCATIONS:-100}'
+    - -m
+    - '${MINIONS:-1}'
     ports:
     - 8081:8081
 

@@ -18,17 +18,19 @@ import (
 )
 
 var (
-	metricsPort  int
-	numOfMinions int
-	brokerURL    string
-	brokerType   string
-	logLevel     string
-	minions      []api.Broker
+	metricsPort             int
+	numOfLocations          int
+	numOfMinionsPerLocation int
+	brokerURL               string
+	brokerType              string
+	logLevel                string
+	minions                 []api.Broker
 )
 
 func main() {
 	flag.IntVar(&metricsPort, "p", 8080, "port to export prometheus metrics")
-	flag.IntVar(&numOfMinions, "n", 10, "number of minions to emulate")
+	flag.IntVar(&numOfLocations, "n", 10, "number of locations to emulate")
+	flag.IntVar(&numOfMinionsPerLocation, "m", 1, "number of minions per location")
 	flag.StringVar(&brokerURL, "u", "localhost:9092", "broker URL")
 	flag.StringVar(&brokerType, "t", "kafka", "broker type: kafka, grpc")
 	flag.StringVar(&logLevel, "l", "info", "Logging level: debug, info, warn, error")
@@ -44,23 +46,28 @@ func main() {
 		}
 	}()
 
-	log.Warnf("Starting %d minions using %s as broker via %s...", numOfMinions, brokerType, brokerURL)
-	minions = make([]api.Broker, numOfMinions)
+	log.Warnf("Creating %d locations (with %d minions per location) using %s as broker via %s...", numOfLocations, numOfMinionsPerLocation, brokerType, brokerURL)
+	minions = make([]api.Broker, numOfLocations*numOfMinionsPerLocation)
 	metrics := api.NewMetrics()
 	metrics.Register()
-	for i := 0; i < numOfMinions; i++ {
-		minionConfig := &api.MinionConfig{
-			BrokerURL:  brokerURL,
-			BrokerType: brokerType,
-			ID:         fmt.Sprintf("minion%04d", i+1),
-			Location:   fmt.Sprintf("location%04d", i+1),
+	for i := 0; i < numOfLocations; i++ {
+		for j := 0; j < numOfMinionsPerLocation; j++ {
+			location := fmt.Sprintf("location-%04d", i+1)
+			id := fmt.Sprintf("minion-%04d-%02d", i+1, j+1)
+			log.Warnf("Starting minion %s on location %s", id, location)
+			minionConfig := &api.MinionConfig{
+				BrokerURL:  brokerURL,
+				BrokerType: brokerType,
+				ID:         id,
+				Location:   location,
+			}
+			registry := sink.CreateSinkRegistry()
+			client := broker.GetBroker(minionConfig, registry, metrics)
+			if err := client.Start(); err != nil {
+				log.Fatalf("Cannot start minion: %v", err)
+			}
+			minions[i+j] = client
 		}
-		registry := sink.CreateSinkRegistry()
-		client := broker.GetBroker(minionConfig, registry, metrics)
-		if err := client.Start(); err != nil {
-			log.Fatalf("Cannot start minion: %v", err)
-		}
-		minions[i] = client
 	}
 
 	stop := make(chan os.Signal, 1)

@@ -10,7 +10,8 @@ The provided Docker Compose file can start all the required containers, using si
 export EXTERNAL_IP=192.168.0.40
 export OPENNMS_HEAP=4g
 export KAFKA_HEAP=4g
-export INSTANCES=100
+export LOCATIONS=100 # Total number of locations to create
+export MINIONS=1 # Total number of Minions per location
 
 docker-compose up -d
 ```
