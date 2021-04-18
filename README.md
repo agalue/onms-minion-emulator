@@ -24,4 +24,6 @@ The `gominion` won't start Sink listeners, only the Heartbeat for testing purpos
 
 There is going to be one Minion per Location. The locations and the minion names will contain the index of the instance.
 
+For production test loads, check the Terraform-based project in the [aws](aws/README.md) folder.
+
 **WARNING: Be careful with [NMS-13232](https://issues.opennms.org/browse/NMS-13232). I found issues on the Minions requisition when starting lots of instances simultaneously.**

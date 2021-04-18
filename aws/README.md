@@ -31,7 +31,11 @@ terraform apply
 SSH the emulator VM, and then execute the software, for instance:
 
 ```bash=
-onms-minion-emulator -l warn -n 1000 -t kafka -u 172.16.1.11:9092
+onms-minion-emulator -l warn -n 1000 -m 2 -t kafka -u 172.16.1.11:9092
 ```
 
 Make sure that the IP address of the broker matches what's defined in [vars.tf](./vars.tf).
+
+The above creates 2000 Minions (1000 Locations, with 2 Minions on each of them).
+
+**WARNING: Watch out for the file descriptors. I recommend reading [this](https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/) article. In essence, try to reduce the number of partitions per topic as much as you can. Remember that even with single-topic enabled for RPC, there would be one `rpc-request` topic per location.
