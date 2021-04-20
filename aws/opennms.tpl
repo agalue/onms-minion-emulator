@@ -57,35 +57,16 @@ yum install -y jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
 echo "### Installing OpenNMS..."
 
 if [[ "$onms_branch" == "testing" ]]; do
-  yum remove -y opennms-repo-stable-rhel7
-
-  cat <<EOF > /etc/yum.repos.d/opennms-testing.repo
-[opennms-testing]
-name=opennms-testing
-baseurl=https://packages.opennms.com/public/testing/rpm/el/7/$basearch
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
-autorefresh=1
-type=rpm-md
-
-[opennms-testing-noarch]
-name=opennms-testing-noarch
-baseurl=https://packages.opennms.com/public/testing/rpm/el/7/noarch
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
-autorefresh=1
-type=rpm-md
-
-[opennms-common-testing-noarch]
-name=opennms-common-testing-noarch
-baseurl=https://packages.opennms.com/public/common-testing/rpm/el/7/noarch
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
-autorefresh=1
-type=rpm-md
-EOF
-done
-yum install -y opennms-core opennms-webapp-jetty opennms-webapp-hawtio opennms-helm
+  yum install -y perl
+  cd /tmp
+  wget https://raw.githubusercontent.com/OpenNMS/opennms-repo/master/script/download-artifacts.pl
+  chmod +x download-artifacts.pl
+  ./download-artifacts.pl --match 'opennms-core' rpm $onms_branch
+  ./download-artifacts.pl --match 'opennms-webapp' rpm $onms_branch
+  yum install -y *.rpm
+else
+  yum install -y opennms-core opennms-webapp-jetty opennms-webapp-hawtio
+fi
 
 echo "### Configuring OpenNMS..."
 

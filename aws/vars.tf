@@ -78,7 +78,7 @@ variable "settings" {
     kafka_num_partitions      = 3 # Careful, Kafka could die when having 1500+ Minions
     kafka_replication_factor  = 2
     kafka_min_insync_replicas = 1
-    onms_branch               = "testing" # Use "stable" (current release) or "testing" (upcoming release)
+    onms_branch               = "release-27.x" # Use "stable" (current release) or a branch name like "release-27.x"
     onms_rpc_ttl              = 60000 # In milliseconds
     fd_limit_zookeeper        = 10000
     fd_limit_kafka            = 5000000
