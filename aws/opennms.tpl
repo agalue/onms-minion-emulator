@@ -6,6 +6,7 @@
 zk_servers="${zk_servers}"
 kafka_servers="${kafka_servers}"
 rpc_ttl="${rpc_ttl}"
+onms_branch="${onms_branch}"
 
 # AWS Template Variables - End
 
@@ -46,12 +47,44 @@ yum install -y yum install postgresql-server
 sed -r -i "/^(local|host)/s/(peer|ident)/trust/g" /var/lib/pgsql/data/pg_hba.conf
 systemctl --now enable postgresql
 
-echo "### Installing OpenNMS..."
+echo "### Installing OpenNMS Dependencies..."
 
 sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2-core.repo
 yum install -y http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
 rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
 yum install -y jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
+
+echo "### Installing OpenNMS..."
+
+if [[ "$onms_branch" == "testing" ]]; do
+  yum remove -y opennms-repo-stable-rhel7
+
+  cat <<EOF > /etc/yum.repos.d/opennms-testing.repo
+[opennms-testing]
+name=opennms-testing
+baseurl=https://packages.opennms.com/public/testing/rpm/el/7/$basearch
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+autorefresh=1
+type=rpm-md
+
+[opennms-testing-noarch]
+name=opennms-testing-noarch
+baseurl=https://packages.opennms.com/public/testing/rpm/el/7/noarch
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+autorefresh=1
+type=rpm-md
+
+[opennms-common-testing-noarch]
+name=opennms-common-testing-noarch
+baseurl=https://packages.opennms.com/public/common-testing/rpm/el/7/noarch
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+autorefresh=1
+type=rpm-md
+EOF
+done
 yum install -y opennms-core opennms-webapp-jetty opennms-webapp-hawtio opennms-helm
 
 echo "### Configuring OpenNMS..."
