@@ -127,6 +127,7 @@ services:
 
   emulator:
     build: .
+    image: agalue/onms-minion-emulator
     container_name: emulator
     hostname: emulator
     depends_on:

@@ -38,4 +38,5 @@ Make sure that the IP address of the broker matches what's defined in [vars.tf](
 
 The above creates 2000 Minions (1000 Locations, with 2 Minions on each of them).
 
-**WARNING: Watch out for the file descriptors. I recommend reading [this](https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/) article. In essence, try to reduce the number of partitions per topic as much as you can. Remember that even with single-topic enabled for RPC, there would be one `rpc-request` topic per location.
+**WARNING: Watch out for the file descriptors. I recommend reading [this](https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/) article. In essence, try to reduce the number of partitions per topic as much as you can. Remember that even with single-topic enabled for RPC, there would be one `rpc-request` topic per location. For most implementations you want to follow the rule of thumb of 10 partitions per topic, and 10,000 partitions per Kafka cluster. Going beyond that amount can require additional monitoring and optimization.**
+
