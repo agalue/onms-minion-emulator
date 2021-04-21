@@ -147,9 +147,10 @@ echo "### Installing and Running CMAK via Docker..."
 
 amazon-linux-extras install docker -y
 systemctl --now enable docker
+usermod -a -G docker ec2-user
 sleep 5
 docker run --name cmak --hostname cmak --detach \
-  --expose 9000 \
+  -p 9000:9000 \
+  -e ZK_HOSTS=$zk_servers \
   --restart always \
-  --env ZK_HOSTS=$zk_servers \
   hlebalbau/kafka-manager:stable
