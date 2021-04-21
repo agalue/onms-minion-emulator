@@ -138,7 +138,7 @@ EOF
 
 echo "### Start OpenNMS..."
 
-$opennms_home/bin/runjava -S /usr/java/latest/bin/java
+$opennms_home/bin/runjava -s
 $opennms_home/bin/install -dis
 
 systemctl --now enable opennms
