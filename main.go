@@ -51,8 +51,8 @@ func main() {
 	metrics := api.NewMetrics()
 	metrics.Register()
 	for i := 0; i < numOfLocations; i++ {
+		location := fmt.Sprintf("location-%04d", i+1)
 		for j := 0; j < numOfMinionsPerLocation; j++ {
-			location := fmt.Sprintf("location-%04d", i+1)
 			id := fmt.Sprintf("minion-%04d-%02d", i+1, j+1)
 			log.Warnf("Starting minion %s on location %s", id, location)
 			minionConfig := &api.MinionConfig{
