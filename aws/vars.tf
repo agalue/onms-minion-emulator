@@ -4,7 +4,7 @@
 
 variable "aws_region" {
   description = "EC2 Region for the VPC"
-  default     = "us-west-2" # For testing purposes only (should be changed)
+  default     = "us-east-2" # For testing purposes only (should be changed)
 }
 
 # Access (make sure to use your own keys)
