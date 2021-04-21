@@ -14,11 +14,6 @@ variable "aws_key_name" {
   default     = "agalue" # For testing purposes only (should be changed, based on aws_region)
 }
 
-variable "aws_private_key" {
-  description = "AWS Private Key Full Path"
-  default     = "/Users/agalue/.ssh/agalue.private.aws.us-east-2.pem" # For testing purposes only (should be changed, based on aws_region)
-}
-
 variable "instance_types" {
   description = "Instance types per server/application"
   type        = map
