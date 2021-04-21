@@ -56,8 +56,8 @@ yum install -y jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
 
 echo "### Installing OpenNMS..."
 
-if [[ "$onms_branch" == "testing" ]]; do
-  yum install -y perl
+if [[ "$onms_branch" != "stable" ]]; then
+  yum install -y perl 'perl(JSON::PP)' 'perl(LWP::Protocol::https)'
   cd /tmp
   wget https://raw.githubusercontent.com/OpenNMS/opennms-repo/master/script/download-artifacts.pl
   chmod +x download-artifacts.pl
