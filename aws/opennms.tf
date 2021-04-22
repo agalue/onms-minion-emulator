@@ -4,10 +4,15 @@ data "template_file" "opennms" {
   template = file("opennms.tpl")
 
   vars = {
-    zk_servers    = "${aws_instance.kafka[0].private_ip}:2181"
-    kafka_servers = "${aws_instance.kafka[0].private_ip}:9092"
-    rpc_ttl       = var.settings.onms_rpc_ttl
-    onms_branch   = var.settings.onms_branch
+    zk_servers                    = "${aws_instance.kafka[0].private_ip}:2181"
+    kafka_servers                 = "${aws_instance.kafka[0].private_ip}:9092"
+    rpc_ttl                       = var.settings.onms_rpc_ttl
+    fd_limit_opennms              = var.settings.fd_limit_opennms
+    onms_branch                   = var.settings.onms_branch
+    onms_pollerd_threads          = var.settings.onms_pollerd_threads
+    onms_collectd_threads         = var.settings.onms_collectd_threads
+    onms_provisiond_scan_threads  = var.settings.onms_provisiond_scan_threads
+    onms_provisiond_write_threads = var.settings.onms_provisiond_write_threads
   }
 }
 

@@ -6,7 +6,12 @@
 zk_servers="${zk_servers}"
 kafka_servers="${kafka_servers}"
 rpc_ttl="${rpc_ttl}"
+fd_limit_opennms="${fd_limit_opennms}"
 onms_branch="${onms_branch}"
+onms_pollerd_threads="${onms_pollerd_threads}"
+onms_collectd_threads="${onms_collectd_threads}"
+onms_provisiond_scan_threads="${onms_provisiond_scan_threads}"
+onms_provisiond_write_threads="${onms_provisiond_write_threads}"
 
 # AWS Template Variables - End
 
@@ -84,7 +89,7 @@ fi
 cat <<EOF > $opennms_etc/opennms.conf
 START_TIMEOUT=0
 JAVA_HEAP_SIZE=$mem_in_mb
-MAXIMUM_FILE_DESCRIPTORS=204800
+MAXIMUM_FILE_DESCRIPTORS=$ft_limit_opennms
 
 # Prefer IPv4
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.net.preferIPv4Stack=true"
@@ -135,6 +140,11 @@ cat <<EOF > $opennms_etc/opennms.properties.d/web.properties
 org.opennms.security.disableLoginSuccessEvent=true
 org.opennms.web.defaultGraphPeriod=last_2_hour
 EOF
+
+sed -i -r "s/threads=\"[0-9]*\"/threads=\"$onms_pollerd_threads\"/" $opennms_etc/poller-configuration.xml
+sed -i -r "s/threads=\"[0-9]*\"/threads=\"$onms_collectd_threads\"/" $opennms_etc/collectd-configuration.xml
+sed -i -r "s/scanThreads=\"[0-9]*\"/scanThreads=\"$onms_provisiond_scan_threads\"/g" $opennms_etc/provisiond-configuration.xml
+sed -i -r "s/writeThreads=\"[0-9]*\"/writeThreads=\"$onms_provisiond_write_threads\"/" $opennms_etc/provisiond-configuration.xml
 
 echo "### Start OpenNMS..."
 

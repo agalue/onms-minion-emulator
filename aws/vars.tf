@@ -68,15 +68,20 @@ variable "settings" {
   type        = map
 
   default = {
-    kafka_disk_device_name    = "/dev/sdh"
-    kafka_disk_space_in_gb    = 100
-    kafka_num_partitions      = 3 # Careful, Kafka could die when having 1500+ Minions
-    kafka_replication_factor  = 2
-    kafka_min_insync_replicas = 1
-    onms_branch               = "release-27.x" # Use "stable" (current release) or a branch name like "release-27.x"
-    onms_rpc_ttl              = 60000 # In milliseconds
-    fd_limit_zookeeper        = 10000
-    fd_limit_kafka            = 5000000
+    kafka_disk_device_name        = "/dev/sdh"
+    kafka_disk_space_in_gb        = 100
+    kafka_num_partitions          = 3 # Careful, Kafka could die when having 1500+ Minions
+    kafka_replication_factor      = 2
+    kafka_min_insync_replicas     = 1
+    onms_branch                   = "release-27.x" # Use "stable" (current release) or a branch name like "release-27.x"
+    onms_rpc_ttl                  = 60000 # In milliseconds
+    onms_pollerd_threads          = 120
+    onms_collectd_threads         = 120
+    onms_provisiond_scan_threads  = 60
+    onms_provisiond_write_threads = 40
+    fd_limit_opennms              = 200000
+    fd_limit_zookeeper            = 10000
+    fd_limit_kafka                = 5000000
   }
 }
 
