@@ -62,6 +62,7 @@ func main() {
 				Location:   location,
 			}
 			registry := sink.CreateSinkRegistry()
+			broker.DisplayRegisteredModules(registry)
 			client := broker.GetBroker(minionConfig, registry, metrics)
 			if err := client.Start(); err != nil {
 				log.Fatalf("Cannot start minion: %v", err)
