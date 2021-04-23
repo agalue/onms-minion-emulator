@@ -1,6 +1,8 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 
+set -e
+
 # AWS Template Variables - Start
 
 node_id="${node_id}"

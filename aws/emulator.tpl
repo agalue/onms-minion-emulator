@@ -1,6 +1,8 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 
+set -e
+
 echo "### Basic Settings..."
 
 hostname="emulator"

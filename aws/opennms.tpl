@@ -1,6 +1,8 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 
+set -e
+
 # AWS Template Variables - Start
 
 zk_servers="${zk_servers}"
