@@ -119,14 +119,13 @@ echo "### Configuring Systemd..."
 total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
 
 kafka_mem=$(expr $total_mem_in_mb / 2)
-if [ "$kafka_mem" -gt "16384" ]; then
-  kafka_mem="16384"
+if [ "$kafka_mem" -gt "24576" ]; then
+  kafka_mem="24576"
 fi
 
-total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
 zk_mem=$(expr $total_mem_in_mb / 2)
-if [ "$zk_mem" -gt "4096" ]; then
-  zk_mem="4096"
+if [ "$zk_mem" -gt "8192" ]; then
+  zk_mem="8192"
 fi
 
 systemd_kafka=/etc/systemd/system/kafka.service
@@ -136,6 +135,7 @@ Description=Apache Kafka Server
 Documentation=http://kafka.apache.org
 Wants=network-online.target
 After=network-online.target
+
 [Service]
 Type=simple
 User=root
@@ -146,6 +146,7 @@ Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.manage
 Environment="JMX_PORT=9999"
 ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
 ExecStop=/opt/kafka/bin/kafka-server-stop.sh
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -158,6 +159,7 @@ Description=Apache Zookeeper server
 Documentation=http://zookeeper.apache.org
 Wants=network-online.target
 After=network-online.target
+
 [Service]
 Type=simple
 User=root
@@ -168,6 +170,7 @@ Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.manage
 Environment="JMX_PORT=9997"
 ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
 ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
+
 [Install]
 WantedBy=multi-user.target
 EOF
