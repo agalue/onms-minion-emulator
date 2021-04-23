@@ -31,6 +31,11 @@ resource "aws_instance" "opennms" {
     aws_security_group.opennms.id,
   ]
 
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = var.settings.onms_disk_space_in_gb
+  }
+
   tags = {
     Name        = "Terraform OpenNMS Core Server"
     Environment = "Test"
