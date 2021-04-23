@@ -74,6 +74,7 @@ variable "settings" {
     kafka_replication_factor      = 2
     kafka_min_insync_replicas     = 1
     onms_branch                   = "release-27.x" # Use "stable" (current release) or a branch name like "release-27.x"
+    onms_disk_space_in_gb         = 50
     onms_rpc_ttl                  = 60000 # In milliseconds
     onms_pollerd_threads          = 120
     onms_collectd_threads         = 120
