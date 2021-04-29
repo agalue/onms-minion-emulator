@@ -6,12 +6,8 @@ set -e
 # AWS Template Variables - Start
 
 node_id="${node_id}"
-num_partitions="${num_partitions}"
-replication_factor="${replication_factor}"
-min_insync_replicas="${min_insync_replicas}"
+ip_addresses="${ip_addresses}"
 fd_limit="${fd_limit}"
-zk_ip_addresses="${zk_ip_addresses}"
-disk_device_name="${disk_device_name}"
 
 # AWS Template Variables - End
 
@@ -60,33 +56,6 @@ vm.max_map_count=1048575
 EOF
 sysctl -p /etc/sysctl.d/application.conf
 
-echo "### Waiting on device $disk_device_name..."
-
-while [ ! -e $disk_device_name ]; do
-  printf '.'
-  sleep 10
-done
-
-echo "### Creating partition on $disk_device_name..."
-
-(
-echo o
-echo n
-echo p
-echo 1
-echo
-echo
-echo w
-) | fdisk $disk_device_name
-mkfs.xfs -f $disk_device_name
-
-echo "### Mounting partition..."
-
-mount_point=/data
-mkdir -p $mount_point
-mount -t xfs $disk_device_name $mount_point
-echo "$disk_device_name $mount_point xfs defaults,noatime 0 0" >> /etc/fstab
-
 echo "### Installing common packages..."
 
 amazon-linux-extras install epel -y
@@ -102,7 +71,6 @@ rocommunity public default
 syslocation AWS
 syscontact Account Manager
 dontLogTCPWrappersConnects yes
-disk $mount_point
 disk /
 EOF
 chmod 600 $snmp_cfg
@@ -121,16 +89,16 @@ echo "### Configuring Systemd..."
 
 total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
 
-kafka_mem=$(expr $total_mem_in_mb / 2)
-if [ "$kafka_mem" -gt "24576" ]; then
-  kafka_mem="24576"
+zk_mem=$(expr $total_mem_in_mb / 2)
+if [ "$zk_mem" -gt "8192" ]; then
+  zk_mem="8192"
 fi
 
-systemd_kafka=/etc/systemd/system/kafka.service
-cat <<EOF > $systemd_kafka
+systemd_zoo=/etc/systemd/system/zookeeper.service
+cat <<EOF > $systemd_zoo
 [Unit]
-Description=Apache Kafka Server
-Documentation=http://kafka.apache.org
+Description=Apache Zookeeper server
+Documentation=http://zookeeper.apache.org
 Wants=network-online.target
 After=network-online.target
 
@@ -139,49 +107,50 @@ Type=simple
 User=root
 Group=root
 LimitNOFILE=$fd_limit
-Environment="KAFKA_HEAP_OPTS=-Xmx$${kafka_mem}m -Xms$${kafka_mem}m"
-Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
-Environment="JMX_PORT=9999"
-ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
-ExecStop=/opt/kafka/bin/kafka-server-stop.sh
+Environment="KAFKA_HEAP_OPTS=-Xmx$${zk_mem}m -Xms$${zk_mem}m"
+Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9997 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
+Environment="JMX_PORT=9997"
+ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
 
 [Install]
 WantedBy=multi-user.target
 EOF
-chmod 0644 $systemd_kafka
+chmod 0644 $systemd_zoo
 
 systemctl daemon-reload
 
-echo "### Configuring Kafka..."
+echo "### Configuring Zookeeper..."
 
-kafka_cfg=/opt/kafka/config/server.properties
-kafka_data=$mount_point/kafka
-mkdir -p $kafka_data
+zoo_data=/data/zookeeper
+mkdir -p $zoo_data
+echo $node_id > $zoo_data/myid
 
-connect=$(echo $zk_ip_addresses | sed 's/,/:2181,/g'):2181
-sed -i -r "/^broker.id/s/0/$node_id/" $kafka_cfg
-sed -i -r "/^num.partitions/s/1/$num_partitions/" $kafka_cfg
-sed -i -r "s|^[#]?listeners=.*|listeners=PLAINTEXT://:9092|" $kafka_cfg
-sed -i -r "s|^[#]?advertised.listeners=.*|advertised.listeners=PLAINTEXT://$ip_address:9092|" $kafka_cfg
-sed -i -r "s|^log.dirs=.*|log.dirs=$kafka_data|" $kafka_cfg
-sed -i -r "s|^zookeeper.connect=.*|zookeeper.connect=$connect|" $kafka_cfg
+zoo_cfg=/opt/kafka/config/zookeeper.properties
 
-cat <<EOF >> $kafka_cfg
-default.replication.factor=$replication_factor
-min.insync.replicas=$min_insync_replicas
-controlled.shutdown.enable=true
-auto.create.topics.enable=true
-delete.topic.enable=true
-zookeeper.session.timeout.ms=30000
+sed -i -r "/^admin.enableServer/s/false/true/" $zoo_cfg
+sed -i -r "s|dataDir=.*|dataDir=$zoo_data|" $zoo_cfg
+
+cat <<EOF >> $zoo_cfg
+# Additional Settings
+tickTime=10000
+initLimit=10
+syncLimit=5
 EOF
+index=1
+iplist=$(echo $ip_addresses | tr "," "\n")
+for ip in $iplist
+do
+  echo "server.$index=$ip:2888:3888;2181" >> $zoo_cfg
+  let index++
+done
 
 password_file=/usr/java/latest/jre/lib/management/jmxremote.password
 cat <<EOF > $password_file
 monitorRole QED
 controlRole R&D
-kafka kafka
+zookeeper zookeeper
 EOF
 chmod 400 $password_file
 
 systemctl --now enable zookeeper
-systemctl --now enable kafka

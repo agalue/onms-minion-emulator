@@ -10,9 +10,8 @@ data "template_file" "kafka" {
     num_partitions      = var.settings.kafka_num_partitions
     replication_factor  = var.settings.kafka_replication_factor
     min_insync_replicas = var.settings.kafka_min_insync_replicas
-    fd_limit_kafka      = var.settings.fd_limit_kafka
-    fd_limit_zookeeper  = var.settings.fd_limit_zookeeper
-    ip_addresses        = join(",", var.kafka_ip_addresses)
+    fd_limit            = var.settings.fd_limit_kafka
+    zk_ip_addresses     = join(",", var.zookeeper_ip_addresses)
     disk_device_name    = var.settings.kafka_disk_device_name
   }
 }
@@ -31,7 +30,6 @@ resource "aws_instance" "kafka" {
 
   vpc_security_group_ids = [
     aws_security_group.common.id,
-    aws_security_group.zookeeper.id,
     aws_security_group.kafka.id,
   ]
 

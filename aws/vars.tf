@@ -19,9 +19,10 @@ variable "instance_types" {
   type        = map
 
   default = {
-    opennms  = "m5.4xlarge"
-    kafka    = "m5.4xlarge"
-    emulator = "m5.4xlarge"
+    opennms   = "m5.4xlarge"
+    kafka     = "m5.4xlarge"
+    zookeeper = "m5.2xlarge"
+    emulator  = "m5.4xlarge"
   }
 }
 
@@ -50,14 +51,30 @@ variable "emulator_ip_address" {
 }
 
 # Used to decide the size of the cluster#
-variable "kafka_ip_addresses" {
-  description = "Kafka Servers IP Addresses"
+variable "zookeeper_ip_addresses" {
+  description = "Zookeeper Servers IP Addresses"
   type        = list
 
   default = [
     "172.16.1.11",
     "172.16.1.12",
     "172.16.1.13",
+  ]
+}
+
+# Used to decide the size of the cluster#
+variable "kafka_ip_addresses" {
+  description = "Kafka Servers IP Addresses"
+  type        = list
+
+  default = [
+    "172.16.1.21",
+    "172.16.1.22",
+    "172.16.1.23",
+    "172.16.1.24",
+    "172.16.1.25",
+    "172.16.1.26",
+    "172.16.1.27",
   ]
 }
 
@@ -80,9 +97,9 @@ variable "settings" {
     onms_collectd_threads         = 120
     onms_provisiond_scan_threads  = 60
     onms_provisiond_write_threads = 40
-    fd_limit_opennms              = 200000
-    fd_limit_zookeeper            = 10000
-    fd_limit_kafka                = 5000000
+    fd_limit_opennms              = 200000  # Less than 1000000
+    fd_limit_zookeeper            = 10000   # Less than 1000000
+    fd_limit_kafka                = 5000000 # Less than 1000000
   }
 }
 
