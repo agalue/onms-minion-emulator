@@ -9,6 +9,7 @@ zk_servers="${zk_servers}"
 kafka_servers="${kafka_servers}"
 rpc_ttl="${rpc_ttl}"
 fd_limit_opennms="${fd_limit_opennms}"
+postgres_ip_address="${postgres_ip_address}"
 onms_branch="${onms_branch}"
 onms_pollerd_threads="${onms_pollerd_threads}"
 onms_collectd_threads="${onms_collectd_threads}"
@@ -83,14 +84,6 @@ EOF
 chmod 600 $snmp_cfg
 systemctl --now enable snmpd
 
-echo "### Installing and Configuring PostgreSQL..."
-
-amazon-linux-extras install postgresql10 -y
-yum install -y yum install postgresql-server
-/usr/bin/postgresql-setup --initdb --unit postgresql
-sed -r -i "/^(local|host)/s/(peer|ident)/trust/g" /var/lib/pgsql/data/pg_hba.conf
-systemctl --now enable postgresql
-
 echo "### Installing OpenNMS Dependencies..."
 
 sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2-core.repo
@@ -155,6 +148,8 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:-UseBiasedLocking"
 EOF
 
 sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $opennms_etc/org.apache.karaf.shell.cfg
+
+sed -r -i "s/localhost/$postgres_ip_address/" $opennms_etc/opennms-datasources.xml
 
 cat <<EOF > $opennms_etc/opennms.properties.d/kafka.properties
 org.opennms.activemq.broker.disable=true

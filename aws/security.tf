@@ -43,6 +43,34 @@ resource "aws_security_group" "common" {
   }
 }
 
+resource "aws_security_group" "postgresql" {
+  name        = "terraform-postgresql-sq"
+  description = "Allow PostgreSQL access"
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    description = "Postgres"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  vpc_id = aws_vpc.default.id
+
+  tags = {
+    Name        = "Terraform PostgreSQL SG"
+    Environment = "Test"
+    Department  = "Support"
+  }
+}
+
 resource "aws_security_group" "zookeeper" {
   name        = "terraform-opennms-zookeeper-sg"
   description = "Allow Zookeeper connections."

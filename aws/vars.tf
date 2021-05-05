@@ -19,10 +19,11 @@ variable "instance_types" {
   type        = map
 
   default = {
-    opennms   = "m5.4xlarge"
-    kafka     = "m5.4xlarge"
-    zookeeper = "m5.2xlarge"
-    emulator  = "m5.4xlarge"
+    opennms    = "m5.4xlarge"
+    postgresql = "m5.2xlarge"
+    kafka      = "m5.4xlarge"
+    zookeeper  = "m5.2xlarge"
+    emulator   = "m5.4xlarge"
   }
 }
 
@@ -45,9 +46,14 @@ variable "onms_ip_address" {
   default     = "172.16.1.100"
 }
 
+variable "postgres_ip_address" {
+  description = "PostgreSQL IP Address"
+  default     = "172.16.1.101"
+}
+
 variable "emulator_ip_address" {
   description = "Minion Emulator IP Address"
-  default     = "172.16.1.101"
+  default     = "172.16.1.102"
 }
 
 # Used to decide the size of the cluster#
@@ -90,6 +96,7 @@ variable "settings" {
     kafka_num_partitions          = 3 # Careful, Kafka could die when having 1500+ Minions
     kafka_replication_factor      = 2
     kafka_min_insync_replicas     = 1
+    postgres_disk_space_in_gb     = 100
     onms_branch                   = "release-27.x" # Use "stable" (current release) or a branch name like "release-27.x"
     onms_disk_space_in_gb         = 50
     onms_rpc_ttl                  = 60000 # In milliseconds

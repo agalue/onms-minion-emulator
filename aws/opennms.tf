@@ -6,6 +6,7 @@ data "template_file" "opennms" {
   vars = {
     zk_servers                    = "${aws_instance.kafka[0].private_ip}:2181"
     kafka_servers                 = "${aws_instance.kafka[0].private_ip}:9092"
+    postgres_ip_address           = aws_instance.postgresql.private_ip
     rpc_ttl                       = var.settings.onms_rpc_ttl
     fd_limit_opennms              = var.settings.fd_limit_opennms
     onms_branch                   = var.settings.onms_branch
@@ -37,7 +38,7 @@ resource "aws_instance" "opennms" {
   }
 
   tags = {
-    Name        = "Terraform OpenNMS Core Server"
+    Name        = "Terraform OpenNMS Server"
     Environment = "Test"
     Department  = "Support"
   }
